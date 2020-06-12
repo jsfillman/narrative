@@ -18,6 +18,11 @@ jobs:
       if: "!contains(github.event.head_commit.message, 'skip ci')"
       uses: actions/checkout@v2
 
+    - name: Retrieve version
+      run: |
+        export NARRATIVE_VERSION_NUM=`grep '\"version\":' src/config.json.templ | awk '{print $2}' | sed 's/"//g'`
+        echo ::set-env name=TAG_NAME::$(cat projectFile | grep -Po '(?<=Version>).*(?=</Version>)')
+
     - name: Build and Push to Packages
       if: "!contains(github.event.head_commit.message, 'skip ci')"    
       uses: docker/build-push-action@v1
@@ -26,6 +31,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: docker.pkg.github.com
         repository: jsfillman/narrative
-        tags: ci-test
+        tags: ${{ env.NARRATIVE_VERSION_NUM }} 
         tag_with_ref: true
         tag_with_sha: true
