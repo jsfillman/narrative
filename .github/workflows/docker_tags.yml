@@ -1,4 +1,4 @@
-name: Add Docker Environment Tags
+name: Tag Environments
 
 on:
   pull_request_review_comment:
@@ -21,7 +21,6 @@ jobs:
       #   SHA: ${{ GITHUB_SHA }}
       #   REF: ${{ GITHUB_REF }}
       run: |
-      # Next do a short version of GIT_SHA for docker pull poiposes
         export GIT_SHA=$(git rev-parse --short=7 HEAD)
         echo $(git branch)
         echo $GIT_SHA
