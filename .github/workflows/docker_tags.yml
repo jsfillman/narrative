@@ -3,7 +3,6 @@ name: Add Docker Environment Tags
 on:
   pull_request_review_comment:
     types: [ created, edited ]
-  push:
 
 jobs:
 
@@ -15,17 +14,38 @@ jobs:
       # if: "!contains(github.event.head_commit.message, 'skip ci')"
       uses: actions/checkout@v2
 
-    - name: Set up test environment
+    - name: Get Current Vars
       if: "!contains(github.event.head_commit.message, 'skip ci')"
       shell: bash
       # env:
       #   SHA: ${{ GITHUB_SHA }}
       #   REF: ${{ GITHUB_REF }}
       run: |
+      # Next do a short version of GIT_SHA for docker pull poiposes
         export GIT_SHA=$(git rev-parse --short=7 HEAD)
+        echo $(git branch)
         echo $GIT_SHA
         echo ${GITHUB_SHA}
-        echo $${GITHUB_REF}
+        echo ${GITHUB_REF}
+
+    - name: Tag That
+      if: "contains(github.event.pull_request.comment, 'enable dev')"
+      shell: bash
+      env:
+        USER: ${{ github.actor }}
+        PASS: ${{ secrets.GITHUB_TOKEN }}
+      #   SHA: ${{ GITHUB_SHA }}
+      #   REF: ${{ GITHUB_REF }}
+      run: |
+        # Get name of local image to verify tagging syntax:
+        # docker tag kbase/narrative:vx.y.z kbase/narrative:prod
+        export GIT_SHA=$(git rev-parse --short=7 HEAD)
+        docker pull docker.pkg.github.com/jsfillman/narrative/narrative:sha-$GIT_SHA
+        docker login https://docker.pkg.github.com -u $USER -p $PASS
+        docker tag docker.pkg.github.com/jsfillman/narrative/narrative:sha-$GIT_SHA docker.pkg.github.com/jsfillman/narrative/narrative-dev:sha-$GIT_SHA
+        docker push docker.pkg.github.com/jsfillman/narrative/narrative-dev:sha-$GIT_SHA
+
+
 
     # - name: Retrieve version
     #   run: |
