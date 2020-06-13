@@ -1,0 +1,45 @@
+name: Docker Build
+
+on:
+  pull_request_review_comment:
+    types: [ created, edited ]
+  push:
+
+jobs:
+
+  docker_deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Check out GitHub repo
+      # if: "!contains(github.event.head_commit.message, 'skip ci')"
+      uses: actions/checkout@v2
+
+    - name: Set up test environment
+      if: "!contains(github.event.head_commit.message, 'skip ci')"
+      shell: bash
+      env:
+        SHA: ${{ GITHUB_SHA }}
+        REF: ${{ GITHUB_REF }}
+      run: |
+        export GIT_SHA=$(git rev-parse --short=7 HEAD)
+        echo $GIT_SHA
+        echo $SHA
+        echo $REF
+
+    # - name: Retrieve version
+    #   run: |
+    #     export NARRATIVE_VERSION_NUM=`grep '\"version\":' src/config.json.templ | awk '{print $2}' | sed 's/"//g'`
+    #     echo ::set-env name=TAG_NAME::$(cat projectFile | grep -Po '(?<=Version>).*(?=</Version>)')
+
+    # - name: Tag Next
+    #   if: "contains(github.event.head_commit.message, 'skip ci')"    
+    #   uses: docker/build-push-action@v1
+    #   with:
+    #     username: ${{ github.actor }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
+    #     registry: docker.pkg.github.com
+    #     repository: jsfillman/narrative/narrative
+    #     tags: ${{ env.NARRATIVE_VERSION_NUM }},testing 
+    #     tag_with_ref: true
+    #     tag_with_sha: true
